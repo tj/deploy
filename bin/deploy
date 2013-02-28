@@ -115,7 +115,7 @@ ssh_command() {
 
   test -n "$forward_agent" && local agent="-A"
   test -n "$key" && local identity="-i $key"
-  echo "ssh $agent $identity $url"
+  echo "ssh -t $agent $identity $url"
 }
 
 #

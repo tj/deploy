@@ -268,7 +268,7 @@ current_commit() {
 nth_deploy_commit() {
   local n=$1
   local path=`config_get path`
-  run "cat $path/.deploys | tail -n $n | head -n 1 | cut -d ' ' -f 1"
+  run "cat $path/.deploys | tail -n $n | head -n 1 | cut -d ' ' -f 1 | tr -d '\n'"
 }
 
 #

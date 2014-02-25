@@ -156,6 +156,26 @@ config() {
 }
 
 #
+# Execute hook <name> in the developer's repository, before
+# deploying code to the server
+#
+
+local_hook() {
+  test -n "$1" || abort hook name required
+  local hook=$1
+  local path=`config_get path`
+  local cmd=`config_get $hook`
+  if test -n "$cmd"; then
+    log "executing $hook \`$cmd\` in local repository"
+	($cmd 2>&1 | tee -a $LOG && exit ${PIPESTATUS})
+    test $? -eq 0
+  else
+    log local_hook $hook
+  fi
+}
+
+
+#
 # Execute hook <name> relative to the path configured.
 #
 
@@ -203,6 +223,7 @@ deploy() {
   local path=`config_get path`
   log deploying
 
+  local_hook local-test || abort local-test hook failed
   hook pre-deploy || abort pre-deploy hook failed
 
   # fetch source

@@ -223,7 +223,12 @@ deploy() {
   local path=`config_get path`
   log deploying
 
-  local_hook local-test || abort local-test hook failed
+  if test $TEST -eq 1; then
+	local_hook local-test || abort local tests failed!
+  else
+    log ignoring local tests
+  fi
+
   hook pre-deploy || abort pre-deploy hook failed
 
   # fetch source

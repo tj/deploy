@@ -229,6 +229,8 @@ deploy() {
     log ignoring local tests
   fi
 
+  # run any local tasks e.g. cache-busting
+  local_hook local-pre-deploy || abort local-pre-deploy failed
   hook pre-deploy || abort pre-deploy hook failed
 
   # fetch source

@@ -7,7 +7,7 @@
 # https://github.com/visionmedia/deploy
 #
 
-VERSION="0.6.0"
+VERSION="0.6.1-necaris"
 CONFIG=./deploy.conf
 LOG=/tmp/deploy.log
 TEST=1
@@ -356,7 +356,7 @@ check_for_local_changes() {
 update() {
   log "updating deploy(1)"
   rm -fr /tmp/deploy
-  git clone git://github.com/visionmedia/deploy.git \
+  git clone git://github.com/necaris/deploy.git \
     --depth 0 \
     /tmp/deploy \
     &> /tmp/deploy.log \

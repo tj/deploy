@@ -11,6 +11,7 @@ VERSION="0.6.1-necaris"
 CONFIG=./deploy.conf
 LOG=/tmp/deploy.log
 TEST=1
+STRICT_KEYS=1
 REF=
 ENV=
 
@@ -28,6 +29,7 @@ usage() {
     -C, --chdir <path>   change the working directory to <path>
     -c, --config <path>  set config path. defaults to ./deploy.conf
     -T, --no-tests       ignore test hook
+    -K, --no-strict-keys skip strict host key checking
     -V, --version        output program version
     -h, --help           output help information
 
@@ -119,7 +121,8 @@ ssh_command() {
   test -n "$key" && local identity="-i $key"
   test -n "$port" && local port="-p $port"
   test -n "$needs_tty" && local tty="-t"
-  echo "ssh $tty $agent $port $identity $url"
+  test $STRICT_KEYS -eq 0 && local strict_keys="-o StrictHostKeyChecking=no"
+  echo "ssh $strict_keys $tty $agent $port $identity $url"
 }
 
 #
@@ -375,6 +378,7 @@ while test $# -ne 0; do
     -c|--config) set_config_path $1; shift ;;
     -C|--chdir) log cd $1; cd $1; shift ;;
     -T|--no-tests) TEST=0 ;;
+    -K|--no-strict-keys) STRICT_KEYS=0 ;;
     run|exec) require_env; run "cd `config_get path`/current && $@"; exit ;;
     console) require_env; console; exit ;;
     curr|current) require_env; current_commit; exit ;;

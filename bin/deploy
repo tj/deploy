@@ -225,7 +225,7 @@ deploy() {
   run "cd $path/source && git reset --hard $ref"
   test $? -eq 0 || abort git reset failed
   local branch=`config_get branch`
-  if [ -n "$branch" ]
+  if [ -n "$branch" ]; then
    run "cd $path/source && git checkout $branch"
   fi  
   # link current

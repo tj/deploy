@@ -206,6 +206,9 @@ hook() {
 setup() {
   local path=`config_get path`
   local repo=`config_get repo`
+
+  hook pre-setup || abort pre-setup hook failed
+
   run "mkdir -p $path/{shared/{logs,pids},source}"
   test $? -eq 0 || abort setup paths failed
   log running setup
@@ -214,6 +217,9 @@ setup() {
   test $? -eq 0 || abort failed to clone
   run "ln -sfn $path/source $path/current"
   test $? -eq 0 || abort symlink failed
+
+  hook post-setup || abort post-setup hook failed
+
   log setup complete
 }
 

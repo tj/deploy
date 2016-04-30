@@ -307,8 +307,8 @@ revert_to() {
 #
 
 require_env() {
-  config_section $ENV || abort "[$ENV] config section not defined"
   test -z "$ENV" && abort "<env> required"
+  config_section $ENV || abort "[$ENV] config section not defined"
 }
 
 #

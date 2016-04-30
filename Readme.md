@@ -48,6 +48,19 @@
     ref origin/master
     post-deploy /var/www/myapp.com/update.sh
 
+ You can also use group names for environments to be able to deploy and run commands on them.
+
+    [develop:appA]
+    key /path/to/some.pem
+
+    [develop:appB]
+    key /path/to/some.pem
+    
+
+ Run an `deploy(1)` on an entire group by using the `:*` string after the group name.
+
+    deploy develop:*
+
 ## Directives
 
 ### key (optional)

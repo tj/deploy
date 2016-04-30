@@ -202,8 +202,11 @@ while test $# -ne 0; do
       else
         require_cluster
         run_deploy_cluster $@;
+        exit;
       fi
       ;;
   esac
 done
+
+require_cluster
 

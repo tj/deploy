@@ -364,9 +364,9 @@ port $1"; shift ;;
       --ref) test -n "$1" && local ref="
 ref $1"; shift ;;
       --pre-deploy) test -n "$1" && local pre_deploy="
-pre_deploy $1"; shift ;;
+pre-deploy $1"; shift ;;
       --post-deploy) test -n "$1" && local post_deploy="
-post_deploy $1"; shift ;;
+post-deploy $1"; shift ;;
       --test) test -n "$1" && local test="
 test $1"; shift ;;
       *)

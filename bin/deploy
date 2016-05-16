@@ -355,6 +355,8 @@ mkconfig() {
       -h|--host) test -n "$1" && host=$1; shift ;;
       --repo) test -n "$1" && repo=$1; shift ;;
       --path) test -n "$1" && path=$1; shift ;;
+      -i|--key) test -n "$1" && local key="
+key $1"; shift ;;
       --forward-agent) test -n "$1" && local forward_agent="
 forward-agent $1"; shift ;;
       --needs-tty) test -n "$1" && local needs_tty="
@@ -386,7 +388,7 @@ test $1"; shift ;;
 user $user
 host $host$port
 repo $repo
-path $path$ref$forward_agent$needs_tty$pre_deploy$post_deploy$test
+path $path$ref$key$forward_agent$needs_tty$pre_deploy$post_deploy$test
 EOF
 }
 

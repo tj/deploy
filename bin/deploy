@@ -80,7 +80,10 @@ set_config_path() {
 #
 
 config_section() {
-  grep "^\[$1" $CONFIG &> /dev/null
+  case "$1" in 
+    *":*" ) grep "^\[$1:" $CONFIG &> /dev/null;;
+    * ) grep "^\[$1" $CONFIG &> /dev/null;;
+  esac
 }
 
 #
@@ -151,7 +154,7 @@ config() {
   if test $# -eq 0; then
     cat $CONFIG
   else
-    config_get $1
+    multiple_env config_get $1
   fi
 }
 
@@ -337,6 +340,45 @@ update() {
   && log "updated $VERSION -> `./bin/deploy --version`"
 }
 
+get_multi_env() {
+  local multiple_env
+  local env_group
+
+  case "$ENV" in 
+    *":*" )
+      env_group=$ENV
+      env_group=${env_group//:*/}
+
+      multiple_env=`grep "^\[${ENV}:" $CONFIG`
+      
+      # remove brackets
+      multiple_env=${multiple_env//\[/}
+      multiple_env=${multiple_env//\]/}
+
+      echo $multiple_env
+      ;;
+    * ) echo $ENV;;
+  esac
+}
+
+#
+# Run the given <cmd> on all <env>.
+#
+
+multiple_env() {
+  local multi_env="`get_multi_env`"
+  local orig_env=$ENV
+  
+  for env in $multi_env; do
+    ENV=$env
+    log [$ENV] "$@"
+    $@
+  done
+
+  ENV=$orig_env
+  
+}
+
 # parse argv
 
 while test $# -ne 0; do
@@ -347,13 +389,13 @@ while test $# -ne 0; do
     -c|--config) set_config_path $1; shift ;;
     -C|--chdir) log cd $1; cd $1; shift ;;
     -T|--no-tests) TEST=0 ;;
-    run|exec) require_env; run "cd `config_get path`/current && $@"; exit ;;
-    console) require_env; console; exit ;;
-    curr|current) require_env; current_commit; exit ;;
-    prev|previous) require_env; nth_deploy_commit 2; exit ;;
-    revert) require_env; revert_to ${1-1}; exit ;;
-    setup) require_env; setup $@; exit ;;
-    list) require_env; list_deploys; exit ;;
+    run|exec) require_env; multiple_env run "cd `config_get path`/current && $@"; exit ;;
+    console) require_env; multiple_env console; exit ;;
+    curr|current) require_env; multiple_env current_commit; exit ;;
+    prev|previous) require_env; multiple_env nth_deploy_commit 2; exit ;;
+    revert) require_env; multiple_env revert_to ${1-1}; exit ;;
+    setup) require_env; multiple_env setup $@; exit ;;
+    list) require_env; multiple_env list_deploys; exit ;;
     update) update; exit ;;
     config) config $@; exit ;;
     *)
@@ -370,4 +412,4 @@ require_env
 check_for_local_changes
 
 # deploy
-deploy "${REF:-`config_get ref`}"
+multiple_env deploy "${REF:-`config_get ref`}"

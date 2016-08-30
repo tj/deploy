@@ -224,7 +224,10 @@ deploy() {
   log resetting HEAD to $ref
   run "cd $path/source && git reset --hard $ref"
   test $? -eq 0 || abort git reset failed
-
+  local branch=`config_get branch`
+  if [ -n "$branch" ]; then
+   run "cd $path/source && git checkout $branch"
+  fi  
   # link current
   run "ln -sfn $path/source $path/current"
   test $? -eq 0 || abort symlink failed
@@ -367,7 +370,8 @@ while test $# -ne 0; do
 done
 
 require_env
-check_for_local_changes
+# Temporarily remove this method , its buggy.
+#check_for_local_changes
 
 # deploy
 deploy "${REF:-`config_get ref`}"

@@ -47,6 +47,7 @@
     repo git@github.com:visionmedia/express.git
     path /var/www/myapp.com
     ref origin/master
+    branch develop
     post-deploy /var/www/myapp.com/update.sh
 
 ## Directives
@@ -67,6 +68,10 @@
 
         ref origin/develop
 
+### branch (optional)
+
+  When specified the repo will checkout the desired branch. Unlike ref which works along tags 
+  Set into the branch. 
 ### user
 
   User for deployment.

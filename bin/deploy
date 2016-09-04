@@ -41,6 +41,7 @@ usage() {
     prev[ious]           output previous release commit
     exec|run <cmd>       execute the given <cmd>
     console              open an ssh session to the host
+    mkconfig             outputs a configuration from the arguments given so you can save it to a file
     list                 list previous deploy commits
     [ref]                deploy to [ref], the 'ref' setting, or latest tag
 
@@ -337,6 +338,60 @@ update() {
   && log "updated $VERSION -> `./bin/deploy --version`"
 }
 
+#
+# Output config
+#
+
+mkconfig() {
+  local user="ssh-user"
+  local host="your-server.com"
+  local repo="git@github.com/visionmedia/deploy.git"
+  local path="/remote/path/to/site"
+  
+  while test $# -ne 0; do
+    arg=$1; shift
+    case $arg in
+      -u|--user) test -n "$1" && user=$1; shift ;;
+      -h|--host) test -n "$1" && host=$1; shift ;;
+      --repo) test -n "$1" && repo=$1; shift ;;
+      --path) test -n "$1" && path=$1; shift ;;
+      -i|--key) test -n "$1" && local key="
+key $1"; shift ;;
+      --forward-agent) test -n "$1" && local forward_agent="
+forward-agent $1"; shift ;;
+      --needs-tty) test -n "$1" && local needs_tty="
+needs_tty $1"; shift ;;
+      -P|--port) test -n "$1" && local port="
+port $1"; shift ;;
+      --ref) test -n "$1" && local ref="
+ref $1"; shift ;;
+      --pre-deploy) test -n "$1" && local pre_deploy="
+pre-deploy $1"; shift ;;
+      --post-deploy) test -n "$1" && local post_deploy="
+post-deploy $1"; shift ;;
+      --test) test -n "$1" && local test="
+test $1"; shift ;;
+      *)
+        if test -z "$config_name"; then
+          local config_name=$arg;
+        fi
+        ;;
+    esac
+  done
+
+  if test -z "$config_name"; then
+    local config_name="CONFIG_NAME"
+  fi
+
+  cat <<-EOF
+[$config_name]
+user $user
+host $host$port
+repo $repo
+path $path$ref$key$forward_agent$needs_tty$pre_deploy$post_deploy$test
+EOF
+}
+
 # parse argv
 
 while test $# -ne 0; do
@@ -356,6 +411,7 @@ while test $# -ne 0; do
     list) require_env; list_deploys; exit ;;
     update) update; exit ;;
     config) config $@; exit ;;
+    mkconfig) mkconfig $@; exit ;;
     *)
       if test -z "$ENV"; then
         ENV=$arg;

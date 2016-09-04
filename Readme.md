@@ -32,6 +32,7 @@
         prev[ious]           output previous release commit
         exec|run <cmd>       execute the given <cmd>
         console              open an ssh session to the host
+        mkconfig             outputs a configuration from the arguments given so you can save it to a file
         list                 list previous deploy commits
         [ref]                deploy to [ref], the 'ref' setting, or latest tag
 

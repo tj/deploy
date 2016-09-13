@@ -1,0 +1,212 @@
+#!/usr/bin/env bash
+
+#
+# deploy-custer(1) - Shell script that augments deploy with features for deploying on multiple servers
+# Released under the MIT License.
+#
+# https://github.com/kzap/deploy
+#
+
+VERSION="0.1.0"
+DEPLOY_CMD=deploy
+CONFIG=./deploy.conf
+LOG=/tmp/deploy-cluster.log
+TEST=1
+REF=
+CLUSTER=
+
+#
+# Output usage information.
+#
+
+usage() {
+  cat <<-EOF
+
+  Usage: deploy-cluster [options] <cluster> [command]
+
+  Options:
+
+    -C, --chdir <path>   change the working directory to <path>
+    -c, --config <path>  set config path. defaults to ./deploy.conf
+    -T, --no-tests       ignore test hook
+    -V, --version        output program version
+    -h, --help           output help information
+
+  Commands:
+
+    setup                run remote setup commands
+    update               update deploy to the latest release
+    revert [n]           revert to [n]th last deployment or 1
+    config [key]         output config file or [key]
+    curr[ent]            output current release commit
+    prev[ious]           output previous release commit
+    exec|run <cmd>       execute the given <cmd>
+    console              open an ssh session to the host
+    list                 list previous deploy commits
+    [ref]                deploy to [ref], the 'ref' setting, or latest tag
+
+EOF
+}
+
+#
+# Abort with <msg>
+#
+
+abort() {
+  echo
+  echo "  $@" 1>&2
+  echo
+  exit 1
+}
+
+#
+# Log <msg>.
+#
+
+log() {
+  echo "  ○ $@"
+}
+
+#
+# Set configuration file <path>.
+#
+
+set_config_path() {
+  test -f $1 || abort invalid --config path
+  CONFIG=$1
+}
+
+#
+# Check if config <section> exists.
+#
+
+config_section() {
+  grep "^\[$1:" $CONFIG &> /dev/null
+}
+
+get_envs() {
+  local cluster
+  cluster=`grep "^\[${CLUSTER}:" $CONFIG`
+  # remove brackets
+  cluster=${cluster//\[/}
+  cluster=${cluster//\]/}
+  
+  echo $cluster
+}
+
+
+# Output version.
+#
+
+version() {
+  echo "deploy-cluster $VERSION"
+  
+  log `deploy_command` --version
+  log `run_deploy --version`;
+}
+
+#
+# Return the deploy command to run.
+#
+
+deploy_command() {
+  #local key="`config_get key`"
+  #test -n "$key" && local identity="-i $key"
+  
+  echo "$DEPLOY_CMD"
+}
+
+#
+# Run the given deploy <cmd>.
+#
+
+run_deploy() {
+  local deploy="`deploy_command`"
+  local envs="`get_envs`"
+
+  echo $deploy -c $CONFIG "\"$@\"" >> $LOG
+  $deploy -c $CONFIG "$@"
+}
+
+#
+# Run the given deploy <cmd> on all <env> in the <cluster>.
+#
+
+run_deploy_cluster() {
+  local deploy="`deploy_command`"
+  local envs="`get_envs`"
+  
+  for env in $envs; do
+    log Running: $deploy $env $@
+    echo $deploy -c $CONFIG $env "\"$@\"" >> $LOG
+    $deploy -c $CONFIG $env $@
+  done
+  
+}
+
+#
+# Require environment arg.
+#
+
+require_cluster() {
+  test -z "$CLUSTER" && abort "<cluster> required"
+  config_section $CLUSTER || abort "[$CLUSTER:] cluster config section not defined"
+}
+
+#
+# Output config or [key].
+#
+
+config() {
+  if test $# -eq 0; then
+    cat $CONFIG
+  else
+    require_cluster
+    run_deploy_cluster config $1
+  fi
+}
+
+#
+# Update deploy.
+#
+
+update() {
+  log "updating deploy(1)"
+  rm -fr /tmp/deploy
+  git clone git://github.com/kzap/deploy.git \
+    --depth 0 \
+    /tmp/deploy \
+    &> /tmp/deploy.log \
+  && cd /tmp/deploy \
+  && make install \
+  && log "updated $VERSION -> `./bin/deploy --version`"
+}
+
+# parse argv
+
+while test $# -ne 0; do
+  arg=$1; shift
+  case $arg in
+    #-h|--help) usage; exit ;;
+    -V|--version) version; exit ;;
+    -c|--config) set_config_path $1; shift ;;
+    -C|--chdir) log cd $1; cd $1; shift ;;
+    update) update; exit ;;
+    config) config $@; exit ;;
+    *)
+      if test -z "$CLUSTER"; then
+        CLUSTER=$arg;
+        require_cluster
+        run_deploy_cluster $@;
+        exit;
+      else
+        require_cluster
+        run_deploy_cluster $@;
+        exit;
+      fi
+      ;;
+  esac
+done
+
+require_cluster
+

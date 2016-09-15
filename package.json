@@ -1,0 +1,8 @@
+{
+  "name": "deploy",
+  "version": "0.6.0",
+  "description": "Minimalistic deployment shell script",
+  "bin": {
+    "deploy": "./bin/deploy"
+  }
+}

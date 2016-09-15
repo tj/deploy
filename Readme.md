@@ -7,6 +7,10 @@
 
     $ make install
 
+  Or if you have npm:
+
+    $ npm install visionmedia/deploy
+
   Visit the [wiki](https://github.com/visionmedia/deploy/wiki) for additional usage information.
 
 ## Usage

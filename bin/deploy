@@ -91,6 +91,7 @@ config_get() {
   local key=$1
   test -n "$key" \
     && grep "^\[$ENV" -A 20 $CONFIG \
+    | grep "^\[" -B 20 \
     | grep "^$key" \
     | head -n 1 \
     | cut -d ' ' -f 2-999
